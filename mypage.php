@@ -10,8 +10,7 @@ redir();
                 <h2 class="title">購入済みのコース</h2>
                 <ul class="lectList clearfix">
                     <?php
-                    $uid = 1;
-                    echo "UID: " . $uid;
+                    $uid = $_SESSION['uid'];
                     //DISPLAY PURCHASED COURSE
                     $where = 'WHERE tbl_ut_lecture.uid = ' . $uid . '  AND (tbl_ut_lecture.con = "P" OR tbl_ut_lecture.con = "S") GROUP BY tbl_lc_course.cid ORDER BY tbl_ut_lecture.regdate DESC';
                     $table = 'tbl_ut_lecture 

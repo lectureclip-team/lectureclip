@@ -1,3 +1,10 @@
+<?php 
+if (isset($_POST['login'])) {
+    $email = $_POST['UserMail_m'];
+    $pwd = $_POST['UserPass_m'];
+    $obj->login($email, $pwd);
+}
+?>
 <footer>
     <div class="inner clearfix">
         <p><a href="./"><img src="img/common/logo_f.gif" alt="レクチャークリップ"></a></p>
@@ -95,23 +102,27 @@
             } else {
                 //ALREADY REGISTERED AS FB USER
                 //UPDATE RECORDS
-                if($tempUsertype == 3){
+                if($tempUsertype == 2){
+                    $tempUsertype = 3;
                     $data1 = array('name1' => $lastName, 'name2' => $givenName);
                     $obj->update("tbl_ut_user", $data1, "WHERE uid = $tempuid");
                     $password_hash = password_hash($pass, PASSWORD_BCRYPT, array('cost' => 10));
                     $data2 = array('pwd' => $password_hash, 'usertype' => $tempUsertype);
                     $obj->update("tbl_ut_pass", $data2, "WHERE uid = $tempuid");
+
                 }
                 //NOT YET REGISTERED
                 //INSERT NEW RECORDS INTO DB
-                else{
+                elseif($tempUsertype == 1){
                     $obj->newReg($lastName, $givenName, "tbl_ut_user");
                     foreach ($obj->showLastId("tbl_ut_user", "uid") as $value) {
                         $password_hash = password_hash($pass, PASSWORD_BCRYPT, array('cost' => 10));
                         $newuserdata = array("usertype" => $tempUsertype, "uid" => $value['uid'], "pwd" => $password_hash, "email" => $userMail);
                         $obj->insert("tbl_ut_pass", $newuserdata);
+                        $obj->login($userMail, $pass);
                     }
                 }
+
                 session_destroy($_SESSION['tempUsertype']);
                 session_destroy($_SESSION['tempuid']);
                 
@@ -154,131 +165,168 @@
     </div><!-- /[div.clearfix] -->
 </div><!-- /[div#modal.modal] -->
 
-<?php 
-if (isset($_POST['login'])) {
-    $email = $_POST['UserMail_m'];
-    $pwd = $_POST['UserPass_m'];
-    if (empty($email) OR empty($pwd)) {
-    } else {
-        //$user = $obj->singleData($email, "email", "tbl_ut_pass");        
-        //extract($user);
-        //echo "<script>alert('PWD:' .$pwd);</script>";
-        //if (password_verify($pwd, $pwd)) {
-        //$obj->checkUser($email, $pwd, 'tbl_ut_pass');
-        
-        setMyCookie("lc_login_id", $email);
-        //} 
-          
-    }
+<style type="text/css">
+p.error {
+  margin: 0 0 0 0;
+  float: left;
+  color: #c30d23;
+  text-shadow: 0 0 3px #fff;
+  text-align: left;
+  font-weight: bold;
+  display: block;
+  width: 100%;
 }
-?> 
-            <div id="m_login" class="modal">
-                <div class="modalHead">
-                    <strong>ログイン</strong>
-                    <a href="javascript:;" class="closeBtn btn"><i class="fa fa-times"></i></a>
-                </div><!-- /[div.modalHead] -->
-                <div class="modalMain table">
-                    <div class="cell loginFbWrapper">
-                        <p>Facebookアカウントでログイン</p>                
-                        <!--<p class="btn"><a href="javascript:;" onclick="fb_login();"><img src="img/common/login_fb_btn.gif" width="240" height="45" alt=""></a></p>-->
-                        <p class="btn"><a href="#" onclick="fb_login();"><img src="img/common/login_fb_btn.gif" width="240" height="45" alt=""></a></p>
-                    </div><!-- /[div.float_l] -->
-                    <div class="cell formWrapper">
-                        <form method="post" action="">
-                            <div style="color:red;" id="add_err" name"add_err"> </div>
-                            <p><input type="text" required id="UserMail_m" name="UserMail_m" class="userMail" size="15" placeholder="ID（メールアドレス）"></p>
-                            <p><input type="password" required name="UserPass_m" class="pass" size="15" placeholder="パスワード"></p>
-                            <div class="align_c">
-                                <p><input type="submit" id="login" name="login" value="ログイン"></p>
-                                <p><a rel="leanModal" href="#m_registration" onClick="javascript:displayControl('#m_login', '#lean_overlay', '', '', 0);">新規登録</a>　　　<a rel="leanModal" href="#m_forgot" onClick="javascript:displayControl('#m_login', '#lean_overlay', '', '', 0);">パスワードを忘れた方はこちら</a></p>
-                            </div><!-- /[div.align_c] -->
-                        </form>
-                    </div><!-- /[div.float_r] -->
-                </div><!-- /[div.clearfix] -->
-            </div><!-- /[div#modal.modal] -->
 
-            <div id="m_forgot" class="modal">
-                <div class="modalHead"> <strong>パスワードを忘れた方</strong>
-                    <a href="javascript:;" class="closeBtn btn"><i class="fa fa-times"></i></a>
-                </div><!-- /[div.modalHead] -->
-                <div class="generalMain">
-                    <p class="txt">ご登録のメールアドレスを入力してください。<br>パスワードの再登録のご案内メールを送信します。</p>
-                    <?php
-                    if (isset($_POST['submit_forgot'])) {
+input[type="text"]:focus,
+.error input[type="text"],
+.error input[type="password"], 
+input[type="password"]:focus
+{
+  border: 2px solid #c30d23;
+  outline: 2px solid rgba(237, 93, 90, 0.7);
+}
+
+</style>
+<script type="text/javascript">
+$(function(){
+    $(".login-form").submit(function(){
+
+        $("p.error").remove();
+        $("li").removeClass("error");
+
+        $(".logn-usermail").each(function(){
+            if($(this).val()=="" || !$(this).val().match(/.+@.+\..+/g)){
+                $(this).parent().append("<p class='error'>error email</p>");
+            }
+        });
+
+        $(".login-userpass").each(function(){
+            if($(this).val()==""){
+                $(this).parent().append("<p class='error'>error password</p>");
+            }
+        });
+
+        if($("p.error").size() > 0){
+            $(".logn-userpass").addClass("error");
+            $(".logn-usermail").addClass("error");
+            return false;
+        }else{
+            return true;
+        }
+    });
+});
+
+
+
+</script>
+
+<div id="m_login" class="modal">
+    <div class="modalHead">
+        <strong>ログイン</strong>
+        <a href="javascript:;" class="closeBtn btn"><i class="fa fa-times"></i></a>
+    </div><!-- /[div.modalHead] -->
+    <div class="modalMain table">
+        <div class="cell loginFbWrapper">
+            <p>Facebookアカウントでログイン</p>                
+            <!--<p class="btn"><a href="javascript:;" onclick="fb_login();"><img src="img/common/login_fb_btn.gif" width="240" height="45" alt=""></a></p>-->
+            <p class="btn"><a href="#" onclick="fb_login();"><img src="img/common/login_fb_btn.gif" width="240" height="45" alt=""></a></p>
+        </div><!-- /[div.float_l] -->
+        <div class="cell formWrapper">
+            <form method="post" action="" class="login-form">
+                <div style="color:red;" id="add_err" name"add_err"> </div>
+                <p><input type="text" id="UserMail_m" name="UserMail_m" class="logn-usermail userMail" size="15" placeholder="ID（メールアドレス）"></p>
+                <p><input type="password" name="UserPass_m" class="login-userpass pass" size="15" placeholder="パスワード"></p>
+                <div class="align_c">
+                    <p><input type="submit" name="login" value="ログイン"></p>
+                    <p><a rel="leanModal" href="#m_registration" onClick="javascript:displayControl('#m_login', '#lean_overlay', '', '', 0);">新規登録</a>　　　<a rel="leanModal" href="#m_forgot" onClick="javascript:displayControl('#m_login', '#lean_overlay', '', '', 0);">パスワードを忘れた方はこちら</a></p>
+                </div><!-- /[div.align_c] -->
+            </form>
+        </div><!-- /[div.float_r] -->
+    </div><!-- /[div.clearfix] -->
+</div><!-- /[div#modal.modal] -->
+
+<div id="m_forgot" class="modal">
+    <div class="modalHead"> <strong>パスワードを忘れた方</strong>
+        <a href="javascript:;" class="closeBtn btn"><i class="fa fa-times"></i></a>
+    </div><!-- /[div.modalHead] -->
+    <div class="generalMain">
+        <p class="txt">ご登録のメールアドレスを入力してください。<br>パスワードの再登録のご案内メールを送信します。</p>
+        <?php
+        if (isset($_POST['submit_forgot'])) {
 
                         // mail("raymundcuizon@gmail.com", "subject", "message");
 
-                        $code = substr(md5(rand()), 0, 50);
-                        $to = $_POST['UserMail_forgot'];
+            $code = substr(md5(rand()), 0, 50);
+            $to = $_POST['UserMail_forgot'];
                         //$subject = 'the subject';
-                        $message_c = 'http://www.lectureclip.com/resetpass.php?d='.$code;
-                        $message = mb_convert_encoding($message_c, "ISO-2022-JP", "auto");
-                        $to_send = mb_convert_encoding($to, "ISO-2022-JP", "auto");
-                        $subject_C = "The subject";
-                        $subject = mb_encode_mimeheader(mb_convert_encoding($subject_C, "ISO-2022-JP", "auto"));
-                        $headers= "From: " . mb_encode_mimeheader(mb_convert_encoding("lectureclip.com", "ISO-2022-JP", "auto")) . " <no-reply@sample.com>\r\n";
-                        $headers .= "Content-Type: text/plain; charset=iso-2022-jp\n";
-                        $headers .= "Content-Transfer-Encoding: 7bit\n";
-                        $headers .= "X-Mailer: PHP/" . phpversion() . "\r\n";
-                        $headers .= "MIME-Version: 1.0" . "\r\n";
-                        mail($to_send, $subject, $message, $headers);
+            $message_c = 'http://www.lectureclip.com/resetpass.php?d='.$code;
+            $message = mb_convert_encoding($message_c, "ISO-2022-JP", "auto");
+            $to_send = mb_convert_encoding($to, "ISO-2022-JP", "auto");
+            $subject_C = "The subject";
+            $subject = mb_encode_mimeheader(mb_convert_encoding($subject_C, "ISO-2022-JP", "auto"));
+            $headers= "From: " . mb_encode_mimeheader(mb_convert_encoding("lectureclip.com", "ISO-2022-JP", "auto")) . " <no-reply@sample.com>\r\n";
+            $headers .= "Content-Type: text/plain; charset=iso-2022-jp\n";
+            $headers .= "Content-Transfer-Encoding: 7bit\n";
+            $headers .= "X-Mailer: PHP/" . phpversion() . "\r\n";
+            $headers .= "MIME-Version: 1.0" . "\r\n";
+            mail($to_send, $subject, $message, $headers);
 
-                        $data = array('gen_code' => $code, 'email' => $to);
-                        $obj->insert("tbl_forgot_pass_log", $data);
+            $data = array('gen_code' => $code, 'email' => $to);
+            $obj->insert("tbl_forgot_pass_log", $data);
 
-                        printf("<script>location.href='index.php'</script>");
-                    }
-                    ?>
-                    <form action="" class="mailAdd" method="post">
-                        <dl>
-                            <dt>メールアドレス</dt>
-                            <dd>
-                                <input type="email" name="UserMail_forgot" id="UserMail_forgot" style="width: 310px;height: 45px;margin-bottom: 10px;border: 1px solid #bbbbbb;" required>
-                                <!-- <div style="color:red;" id="emailError"> </div> -->
-                            </dd>
-                        </dl>
-                        <p class="btn btn_red">
-                            <input type="submit" name="submit_forgot" value="送信">
-                        </p>
-                    </form>
-                </div><!-- /[div.generalMain] -->
-            </div><!-- /[div#modal.modal] -->
-            <?php
-            if (isset($_POST['submit'])) {    
-                $data = array('uid' => $uid, 'title' => $_POST['CourseName'], 'catid' => $_POST['Category']);
-                echo $data['uid'];
-                $obj->insert("tbl_lc_course", $data);
-                $CourseName_list = $obj->singleData($uid, 'uid', 'tbl_lc_course', 'ORDER BY cid DESC limit 1');
-                extract($CourseName_list);
-                $_SESSION['cid'] = $cid;
-                unset($CourseName_list);
-                echo "<script>window.location.replace('cl_upload.php');</script>";
-            }
+            printf("<script>location.href='index.php'</script>");
+        }
+        ?>
+        <form action="" class="mailAdd" method="post">
+            <dl>
+                <dt>メールアドレス</dt>
+                <dd>
+                    <input type="email" name="UserMail_forgot" id="UserMail_forgot" style="width: 310px;height: 45px;margin-bottom: 10px;border: 1px solid #bbbbbb;" required>
+                    <!-- <div style="color:red;" id="emailError"> </div> -->
+                </dd>
+            </dl>
+            <p class="btn btn_red">
+                <input type="submit" name="submit_forgot" value="送信">
+            </p>
+        </form>
+    </div><!-- /[div.generalMain] -->
+</div><!-- /[div#modal.modal] -->
+<?php
+if (isset($_POST['submit'])) {    
+    $data = array('uid' => $uid, 'title' => $_POST['CourseName'], 'catid' => $_POST['Category']);
+    echo $data['uid'];
+    $obj->insert("tbl_lc_course", $data);
+    $CourseName_list = $obj->singleData($uid, 'uid', 'tbl_lc_course', 'ORDER BY cid DESC limit 1');
+    extract($CourseName_list);
+    $_SESSION['cid'] = $cid;
+    unset($CourseName_list);
+    echo "<script>window.location.replace('cl_upload.php');</script>";
+}
             //print_r($_SESSION);
-            ?>
-            <div id="m_createCourse" class="modal">
-                <div class="modalHead"> <strong>コースを作成</strong>
-                    <a href="javascript:;" class="closeBtn btn"><i class="fa fa-times"></i></a>
-                </div><!-- /[div.modalHead] -->
-                <div class="generalMain">
-                    <p class="txt">新しく作成するコース名を入力してください。</p>
-                    <form action="" method="POST" class="mailAdd">
-                        <dl>
-                            <dt>コース名</dt>
-                            <dd>
-                                <input type="text" name="CourseName" id="CourseName" required class="" pattern=".{5,30}" required title="5 to 30 characters" > <!--<span id="user-result"></span> --> 
-                            </dd>
-                            <dd>
-                                <input type="submit" id="myBtn" name="submit" disabled value="新規作成">&nbsp;<span id="CourseName-result"></span>
-                            </dd>
-                        </dl>
-                    </form>
-                </div><!-- /[div.generalMain] -->
-            </div><!-- /[div#modal.modal] -->
-            <script type="text/javascript">
+?>
+<div id="m_createCourse" class="modal">
+    <div class="modalHead"> <strong>コースを作成</strong>
+        <a href="javascript:;" class="closeBtn btn"><i class="fa fa-times"></i></a>
+    </div><!-- /[div.modalHead] -->
+    <div class="generalMain">
+        <p class="txt">新しく作成するコース名を入力してください。</p>
+        <form action="" method="POST" class="mailAdd">
+            <dl>
+                <dt>コース名</dt>
+                <dd>
+                    <input type="text" name="CourseName" id="CourseName" required class="" pattern=".{5,30}" required title="5 to 30 characters" > <!--<span id="user-result"></span> --> 
+                </dd>
+                <dd>
+                    <input type="submit" id="myBtn" name="submit" disabled value="新規作成">&nbsp;<span id="CourseName-result"></span>
+                </dd>
+            </dl>
+        </form>
+    </div><!-- /[div.generalMain] -->
+</div><!-- /[div#modal.modal] -->
+<script type="text/javascript">
 
-            $(document).ready(function () {
-                $("#username").keyup(function (e) {
+$(document).ready(function () {
+    $("#username").keyup(function (e) {
             //removes spaces from username
             $(this).val($(this).val().replace(/\s/g, ''));
 
@@ -294,23 +342,23 @@ if (isset($_POST['login'])) {
                 });
             }
         });
-            });
+});
 
-            $(document).ready(function () {
-                $("#CourseName").keyup(function (e) {
-                    var CourseName = $(this).val();
-                    if (CourseName.length < 4) {
-                        $("#CourseName-result").html('');
-                        return;
-                    }
-                    if (CourseName.length >= 4) {
-                        $("#CourseName-result").html('<img src="img/ajax-loader.gif" />');
-                        $.post('check_username.php', {'CourseName': CourseName}, function (data) {
-                            $("#CourseName-result").html(data);
-                        });
-                    }
-                });
+$(document).ready(function () {
+    $("#CourseName").keyup(function (e) {
+        var CourseName = $(this).val();
+        if (CourseName.length < 4) {
+            $("#CourseName-result").html('');
+            return;
+        }
+        if (CourseName.length >= 4) {
+            $("#CourseName-result").html('<img src="img/ajax-loader.gif" />');
+            $.post('check_username.php', {'CourseName': CourseName}, function (data) {
+                $("#CourseName-result").html(data);
             });
-            </script>
-        </body>
-        </html>
+        }
+    });
+});
+</script>
+</body>
+</html>

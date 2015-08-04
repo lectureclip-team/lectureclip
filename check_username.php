@@ -1,5 +1,4 @@
 <?php
-session_start();
 function __autoload($class) {
     include 'lib/' . $class . '.php';
 }
@@ -16,8 +15,7 @@ if (isset($_POST["username"])) {
         //FB USER
         extract($user);
         if($usertype == 2){
-            $_SESSION['tempuid'] = $uid;
-            $_SESSION['tempUsertype'] = 3;
+            $_SESSION['tempuid'] = $uid;            
             echo'<img src="img/available.png" />';
             echo '<script>document.getElementById("user-reg").disabled = false;</script>';
         }

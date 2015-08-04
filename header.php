@@ -1,10 +1,4 @@
 <?php
-function setMyCookie($cookie_name, $cookie_value){
-    setcookie($cookie_name, $cookie_value, time()+120);
-    echo "Cookie name: " . $cookie_name;  
-    var_dump($_COOKIE[$cookie_name]) ; 
-}
-
 session_start();
 function __autoload($class) {
     include_once 'lib/' . $class . '.php';
@@ -16,13 +10,9 @@ if (isset($_GET['q'])) {
     $obj->logout();
 }
 
-if(!isset($_COOKIE[$cookie_name])) {        
-            echo "Cookie does not exists." . $cookie_name;
-            }
-
 function redir() {
-    if(!isset($_COOKIE[$cookie_name])) {
-        echo "<script>window.location.replace('promo.php');</script>";
+    if (!isset($_SESSION['lc_login_id'])) {
+        printf("<script>location.href='promo.php'</script>");
     }
 }
 
@@ -207,7 +197,7 @@ function test($test_value){
         </script>
 
         <div id="wrap">
-            <?php if (!$_COOKIE['lc_login_id']) { ?>
+            <?php if (!$_SESSION['lc_login_id']) { ?>
             <header>
                 <div class="inner">
                     <h1><a href="/"><img src="img/common/logo.gif" alt="レクチャークリップ"></a></h1>
@@ -243,7 +233,7 @@ function test($test_value){
                         <li class="cart"><a href="cart.php"><span class="icon-shopping2"></span>カートを見る</a></li>
                         <?php                         
                         if(!isset($_SESSION['fb_login'])){                            
-                            $img_email = $obj->singleData($_SESSION['myUser'], 'email', 'tbl_ut_pass');
+                            $img_email = $obj->singleData($_SESSION['lc_login_id'], 'email', 'tbl_ut_pass');
                             extract($img_email);
                             $img_user = $obj->singleData($img_email['uid'], 'uid', 'tbl_ut_user');
                             extract($img_user);   

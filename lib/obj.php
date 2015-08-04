@@ -4,7 +4,7 @@ class obj {
 
     private $localhost = "localhost";
     private $username = "root";
-    // private $password = "e@sycomdatabase";
+// private $password = "e@sycomdatabase";
     private $password = "root";
     private $database = "db_lectureclip";
     private $conn;
@@ -47,7 +47,7 @@ class obj {
         }
     }
 
-    //comment try
+//comment try
     public function newReg($name1, $name2, $table) {
         $insert = "insert into $table set name1 = :name1 , name2 = :name2";
         $statement = $this->conn->prepare($insert);
@@ -132,7 +132,7 @@ class obj {
         return $data;
     }
 
-    //SELECT COURSES PER CATEGORY
+//SELECT COURSES PER CATEGORY
     public function category2($catid = NULL) {
         $category = "select tbl_m_category.catname,
         tbl_lc_course.cid,
@@ -218,7 +218,7 @@ class obj {
         return $data;
     }
 
-    //extract.
+//extract.
     public function singleData($data, $where, $table, $order = "") {
         $q = "select * from $table where $where = :data $order";
         $statement = $this->conn->prepare($q);
@@ -227,7 +227,7 @@ class obj {
         return $d;
     }
 
-    //extract
+//extract
     public function doubleData($data, $where, $data2, $where2, $table, $order = "") { 
         $q = "select * from $table where $where = :data and $where2 = $data2 $order";
         $statement = $this->conn->prepare($q);
@@ -237,7 +237,7 @@ class obj {
     }
 
     public function nextData($data, $where, $var1, $col, $table, $order = "") {
-                //SELECT * FROM foo WHERE lno > 4 ORDER BY id LIMIT 1;
+//SELECT * FROM foo WHERE lno > 4 ORDER BY id LIMIT 1;
         $q = "select * from $table where $where > :data and $col = $var1  $order";
         $statement = $this->conn->prepare($q);
         $statement->execute(array(':data' => $data));
@@ -245,7 +245,7 @@ class obj {
         return $d;
     }
 
-    //foreach ($obj->userslist() as $value) {}
+//foreach ($obj->userslist() as $value) {}
     public function userslist($where = "", $order = "", $limit = ""){
         $q = "SELECT tbl_ut_pass.email, tbl_ut_user.name1, tbl_ut_user.name2, tbl_ut_user.regdate, tbl_ut_user.update FROM tbl_ut_user LEFT JOIN tbl_ut_pass ON tbl_ut_user.uid = tbl_ut_pass.uid {$where} {$order} {$limit}";
         $stmt = $this->conn->query($q);
@@ -254,18 +254,18 @@ class obj {
         }
         return $data;
     }
-    //select with join
+//select with join
     public function select_w_join($table, $table_column, $join, $where_c, $where_1, $where_2 = NULL, $data = NULL, $limit = NULL){
-       $data = implode(' , ', $data);
-       $table = implode($join, $table);
-       $table_column = implode(' = ', $table_column);
-       $query = "SELECT $data FROM $table ON $table_column WHERE $where_c = $where_1 $where_2 $limit ";
-       $stmt = $this->conn->query($query);
-       while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-           $datas[] = $row;
-       }
-       return $datas;
-   }
+        $data = implode(' , ', $data);
+        $table = implode($join, $table);
+        $table_column = implode(' = ', $table_column);
+        $query = "SELECT $data FROM $table ON $table_column WHERE $where_c = $where_1 $where_2 $limit ";
+        $stmt = $this->conn->query($query);
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $datas[] = $row;
+        }
+        return $datas;
+    }
 
     public function sum($op = NULL, $table = NULL,  $where = NULL){
         $query = "select $op from $table $where";
@@ -275,16 +275,16 @@ class obj {
     }
 
     public function select_w_join_2($data = NULL, $table, $where){
-       $data = implode(' , ', $data);
-       $query = "SELECT $data FROM $table $where";
-       $stmt = $this->conn->query($query);
-       while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-           $datas[] = $row;
-       }
-       return $datas;
-           //var_dump($query);
+        $data = implode(' , ', $data);
+        $query = "SELECT $data FROM $table $where";
+        $stmt = $this->conn->query($query);
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $datas[] = $row;
+        }
+        return $datas;
+//var_dump($query);
     }
-    //foreach ($obj->select_data_where() as $value) {}
+//foreach ($obj->select_data_where() as $value) {}
     public function select_data_where($table, $where = NULL, $orderby = NULL){
         $read = "SELECT * FROM $table $where $orderby";
         $stmt = $this->conn->query($read);
@@ -313,7 +313,7 @@ class obj {
         echo "<li><a href='" . $page_dom . "page={$total_pages}'><span class='fa fa-fast-forward'></span></a></li></ul></div>";
     }
 
-    //foreach ($obj->readall() as $value) {}
+//foreach ($obj->readall() as $value) {}
     public function readall($table, $orderby = "") {
         $read = "SELECT * FROM $table $orderby";
         $stmt = $this->conn->query($read);
@@ -322,7 +322,7 @@ class obj {
         }
         return $data;
     }
-   //count 
+//count 
     public function count_lecture($table, $where = NULL){
         $query = "select count(*) from $table $where";
         $result = $this->conn->query($query);
@@ -336,7 +336,7 @@ class obj {
         $row = $result->fetch(PDO::FETCH_NUM);
         return $row[0];
     }
-    //    
+//    
 
     public function insert($table_name, $form_data = NULL) {
         $fields = implode(',', array_keys($form_data));
@@ -376,7 +376,7 @@ class obj {
         header("location:index.php");
     }
 
-    //*This function is to avoid the multiple submition of the page*//
+//*This function is to avoid the multiple submition of the page*//
 
     private function generateKey() {
         $ip = $_SERVER['REMOTE_ADDR'];
@@ -416,6 +416,20 @@ class obj {
         <h1>".$message."</h1><br>
         <p class='btn_yellow'><a href=".$target." class='w390 fs18 h45'>Continue Shopping</a></p>
         </div>";
+    }
+
+//login 
+
+    public function login($email, $password){
+        $cred = $this->singleData($email, "email", "tbl_ut_pass");
+        if (password_verify($password, $cred['pwd'])) {
+            printf("<script>$.cookie('lc_login_id', '".$email."');</script>");
+            $_SESSION['lc_login_id'] = $email;
+            $_SESSION['uid'] = $cred['uid'];
+            printf("<script>location.href='".$_SERVER["HTTP_REFERER"]."'</script>");
+        } else {
+            printf("<script>return false</script>");
+        }
     }
 
 }
