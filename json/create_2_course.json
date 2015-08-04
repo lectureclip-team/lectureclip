@@ -1,0 +1,17 @@
+[
+    {
+        "cid": "1",
+        "cname": "sample",
+        "catname": "Sample 1",
+        "cimg": "7ed2a78c88025aa9a716fa329f9e564f.jpg",
+        "regdate": "31\/07\/2015",
+        "lastdate": "00\/00\/0000",
+        "lecture": [
+            {
+                "lid": "1",
+                "lname": "samplep pdf",
+                "ltype": "pdf"
+            }
+        ]
+    }
+]
